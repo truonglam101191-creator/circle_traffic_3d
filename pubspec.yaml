@@ -64,6 +64,7 @@ flutter:
     - assets/images/logo.png
     - assets/images/backdrop.webp
     - assets/images/asphalt.webp
+    - assets/images/icons/
     - flutter_scene_generated/
     - path: flutter_scene_generated/metal_ios/
       platforms:

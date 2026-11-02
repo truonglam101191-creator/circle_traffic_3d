@@ -7,12 +7,14 @@ import '../../data/datasources/circle_traffic_stages.dart';
 import '../../data/datasources/circle_traffic_themes.dart';
 import '../../domain/entities/circle_traffic_models.dart';
 import '../../domain/entities/game_traffic_state.dart';
+import '../widgets/game_icons.dart';
 
-/// Dedicated full-screen Main Menu page styled after the original Circle Traffic 3D
-/// aesthetic (sunset sky header, cream-bordered plum panels, tactile 3D buttons).
-///
-/// Uses a clean 2-tab segmented card ("6 Chế Độ Chơi" / "100 Màn Chơi") so mode
-/// cards never truncate and stage cards never overflow or get cut off at the bottom.
+/// Main Menu Screen crafted in the bright, tactile Casual 3D Game UI style:
+/// - Glossy Sky-Blue 3D outer bezel (`#B8E1FF` -> `#89C4F4`) with 3D bottom lip
+/// - Warm Creamy-Ivory inner surface (`#FAF8F0`) with crisp `#E5E1D0` dividers
+/// - Floating Sky-Blue 3D top ribbon pill straddling the frame edge
+/// - Pastel Ice-Blue sub-cards (`#E6F4FE`) with 3D cartoon icons & golden mini-pills
+/// - Giant glossy 3D Gold primary CTA button (`VÀO CHƠI NGAY / PLAY NOW`)
 class MenuScreen extends StatefulWidget {
   final GameTrafficState state;
   final bool muted;
@@ -71,46 +73,45 @@ class _MenuScreenState extends State<MenuScreen> {
       builder: (context, constraints) {
         final stageW = constraints.maxWidth;
         final stageH = constraints.maxHeight;
-        final ui = (stageW / 390.0).clamp(0.86, 1.32);
-        final compactH = stageH < 740;
+        final ui = (stageW / 390.0).clamp(0.86, 1.30);
+        final compactH = stageH < 750;
 
-        final safeTop = math.max(viewPadding.top + 8.0, 14.0 * ui);
-        final safeBottom = math.max(viewPadding.bottom + 10.0, 14.0 * ui);
-        final safeLeft = math.max(viewPadding.left + 14.0 * ui, 14.0 * ui);
-        final safeRight = math.max(viewPadding.right + 14.0 * ui, 14.0 * ui);
+        final safeTop = math.max(viewPadding.top + 6.0, 12.0 * ui);
+        final safeBottom = math.max(viewPadding.bottom + 8.0, 12.0 * ui);
+        final safeLeft = math.max(viewPadding.left + 12.0 * ui, 12.0 * ui);
+        final safeRight = math.max(viewPadding.right + 12.0 * ui, 12.0 * ui);
 
         final stg = widget.state.stage;
         final stgId = stg?.id ?? widget.state.stageId;
         final stgName = stg?.name ?? 'Stage $stgId';
-        final currentModeSub = switch (widget.state.mode) {
+        final districtTheme = ctThemeForStage(stgId);
+
+        final currentHeaderSub = switch (widget.state.mode) {
           CTGameMode.campaign =>
-            '${_tr('mode_campaign')} · ${_tr('stage_label')} $stgId: $stgName',
+            '${_tr('stage_label')} $stgId · ${districtTheme.name.toUpperCase()} · ${stgName.toUpperCase()}',
           CTGameMode.endless =>
-            '${_tr('mode_endless')} · ${_tr('mode_endless_desc')}',
+            '${_tr('mode_endless').toUpperCase()} · BEST ${widget.bestEndlessScore}',
           CTGameMode.timeAttack =>
-            '${_tr('mode_timeAttack')} · ${_tr('mode_timeAttack_desc')}',
+            '${_tr('mode_timeAttack').toUpperCase()} · 60S RUSH',
           CTGameMode.rushHour =>
-            '${_tr('mode_rushHour')} · ${_tr('mode_rushHour_desc')}',
+            '${_tr('mode_rushHour').toUpperCase()} · SPEED WAVES',
           CTGameMode.bossRush =>
-            '${_tr('mode_bossRush')} · ${_tr('stage_label')} $stgId',
+            '${_tr('mode_bossRush').toUpperCase()} · 10 BOSS STAGES',
           CTGameMode.policeChase =>
-            '${_tr('mode_policeChase')} · ${_tr('mode_policeChase_desc')}',
+            '${_tr('mode_policeChase').toUpperCase()} · ESCORT SQUAD',
         };
 
-        final logoHeight = compactH ? 84.0 * ui : 104.0 * ui;
-
         return Container(
-          // Soft top tint lets the sunset sky backdrop shine behind the Crown Logo
+          // Soft atmospheric blur-like tint over the live 3D roundabout
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0x38281536),
-                Color(0xB82E193C),
-                Color(0xEB261433),
+                Color(0x383A6B9C),
+                Color(0x66294C75),
+                Color(0x881F3A5C),
               ],
-              stops: [0.0, 0.34, 1.0],
             ),
           ),
           child: Padding(
@@ -122,38 +123,22 @@ class _MenuScreenState extends State<MenuScreen> {
             ),
             child: Center(
               child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: 520.0 * ui),
+                constraints: BoxConstraints(maxWidth: 470.0 * ui),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // 1. Uniform Top Bar: Trophy Progress + Language + Sound
+                    // 1. Top Utility Row: Trophy Pill + Language + Sound
                     _buildTopBar(ui),
-                    SizedBox(height: compactH ? 6.0 * ui : 10.0 * ui),
+                    SizedBox(height: compactH ? 18.0 * ui : 24.0 * ui),
 
-                    // 2. Clean Crown Logo over Sunset Sky (zero ghost HUD behind it)
-                    Center(
-                      child: SizedBox(
-                        height: logoHeight,
-                        child: const Image(
-                          image: ResizeImage(
-                            AssetImage('assets/images/logo.png'),
-                            width: 520,
-                          ),
-                          fit: BoxFit.contain,
-                          gaplessPlayback: true,
-                          filterQuality: FilterQuality.medium,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: compactH ? 8.0 * ui : 12.0 * ui),
-
-                    // 3. Tactile 3D Gold Hero Play Button (matches original Release Car button)
-                    _buildHeroPlayButton(ui, currentModeSub),
-                    SizedBox(height: compactH ? 10.0 * ui : 14.0 * ui),
-
-                    // 4. Framed Game Card containing Segmented Tabs + Content
+                    // 2. Main Sky-Blue & Creamy-Ivory 3D Dialog Card (Image 2 Style)
                     Expanded(
-                      child: _buildFramedMenuPanel(ui),
+                      child: _buildSkyBlueCreamDialog(
+                        ui: ui,
+                        compactH: compactH,
+                        currentHeaderSub: currentHeaderSub,
+                        stgId: stgId,
+                      ),
                     ),
                   ],
                 ),
@@ -166,27 +151,60 @@ class _MenuScreenState extends State<MenuScreen> {
   }
 
   Widget _buildTopBar(double ui) {
-    final pillHeight = 44.0 * ui;
+    final pillHeight = 42.0 * ui;
+    final canPop = Navigator.canPop(context);
     return Row(
       children: [
-        // Stage Clear Progress Pill
+        if (canPop) ...[
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.maybePop(context),
+            child: Container(
+              width: pillHeight,
+              height: pillHeight,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFAF8F0),
+                borderRadius: BorderRadius.circular(14.0 * ui),
+                border: Border.all(
+                  color: const Color(0xFF8CC5F2),
+                  width: 2.2 * ui,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF558EC2),
+                    offset: Offset(0, 3.5 * ui),
+                    blurRadius: 0,
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.arrow_back_rounded,
+                size: 20.0 * ui,
+                color: const Color(0xFF1D4D7A),
+              ),
+            ),
+          ),
+          SizedBox(width: 7.0 * ui),
+        ],
+        // Trophy Progress Pill (Sky-Blue & Cream 3D Pill)
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => setState(() => _activeTab = 1),
           child: Container(
             height: pillHeight,
-            padding: EdgeInsets.symmetric(horizontal: 12.0 * ui),
+            padding: EdgeInsets.symmetric(horizontal: 11.0 * ui),
             decoration: BoxDecoration(
-              color: const Color(0xF0482E52),
-              borderRadius: BorderRadius.circular(15.0 * ui),
+              color: const Color(0xFFFAF8F0),
+              borderRadius: BorderRadius.circular(14.0 * ui),
               border: Border.all(
-                color: const Color(0xFFFFF0CA),
+                color: const Color(0xFF8CC5F2),
                 width: 2.2 * ui,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF2B1733),
-                  offset: Offset(0, 4.0 * ui),
+                  color: const Color(0xFF558EC2),
+                  offset: Offset(0, 3.5 * ui),
                   blurRadius: 0,
                 ),
               ],
@@ -194,31 +212,16 @@ class _MenuScreenState extends State<MenuScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.emoji_events_rounded,
-                  size: 18.0 * ui,
-                  color: const Color(0xFFFFD34B),
-                ),
-                SizedBox(width: 6.0 * ui),
+                GameSpriteIcon(GameIcons.trophy, size: 18.0 * ui),
+                SizedBox(width: 5.0 * ui),
                 Text(
                   '${widget.clearedStages.length}/100',
                   style: TextStyle(
-                    color: const Color(0xFFFFF5DF),
-                    fontSize: 13.0 * ui,
+                    color: const Color(0xFF285986),
+                    fontSize: 12.5 * ui,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                if (widget.bestEndlessScore > 0) ...[
-                  SizedBox(width: 8.0 * ui),
-                  Text(
-                    '· ♾️ ${widget.bestEndlessScore}',
-                    style: TextStyle(
-                      color: const Color(0xFF52FFA8),
-                      fontSize: 12.0 * ui,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -230,19 +233,18 @@ class _MenuScreenState extends State<MenuScreen> {
           onTap: widget.onCycleLanguage,
           child: Container(
             height: pillHeight,
-            constraints: BoxConstraints(minWidth: 58.0 * ui),
-            padding: EdgeInsets.symmetric(horizontal: 11.0 * ui),
+            padding: EdgeInsets.symmetric(horizontal: 10.0 * ui),
             decoration: BoxDecoration(
-              color: const Color(0xF0482E52),
-              borderRadius: BorderRadius.circular(15.0 * ui),
+              color: const Color(0xFFFAF8F0),
+              borderRadius: BorderRadius.circular(14.0 * ui),
               border: Border.all(
-                color: const Color(0xFFFFF0CA),
+                color: const Color(0xFF8CC5F2),
                 width: 2.2 * ui,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF2B1733),
-                  offset: Offset(0, 4.0 * ui),
+                  color: const Color(0xFF558EC2),
+                  offset: Offset(0, 3.5 * ui),
                   blurRadius: 0,
                 ),
               ],
@@ -251,46 +253,42 @@ class _MenuScreenState extends State<MenuScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.language_rounded,
-                  size: 16.0 * ui,
-                  color: const Color(0xFFFFD34B),
-                ),
-                SizedBox(width: 5.0 * ui),
+                GameSpriteIcon(GameIcons.language, size: 17.0 * ui),
+                SizedBox(width: 4.0 * ui),
                 Text(
                   widget.lang.toUpperCase(),
                   style: TextStyle(
-                    color: const Color(0xFFFFF5DF),
-                    fontSize: 12.5 * ui,
+                    color: const Color(0xFF285986),
+                    fontSize: 12.0 * ui,
                     fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5 * ui,
+                    letterSpacing: 0.4 * ui,
                   ),
                 ),
               ],
             ),
           ),
         ),
-        SizedBox(width: 8.0 * ui),
+        SizedBox(width: 7.0 * ui),
         // Sound Pill
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: widget.onToggleSound,
           child: Container(
             height: pillHeight,
-            padding: EdgeInsets.symmetric(horizontal: 12.0 * ui),
+            padding: EdgeInsets.symmetric(horizontal: 10.0 * ui),
             decoration: BoxDecoration(
               color: widget.muted
-                  ? const Color(0xF05E3E5C)
-                  : const Color(0xF07E549E),
-              borderRadius: BorderRadius.circular(15.0 * ui),
+                  ? const Color(0xFFEDEAE0)
+                  : const Color(0xFFE6F4FE),
+              borderRadius: BorderRadius.circular(14.0 * ui),
               border: Border.all(
-                color: const Color(0xFFFFF0CA),
+                color: const Color(0xFF8CC5F2),
                 width: 2.2 * ui,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF2B1733),
-                  offset: Offset(0, 4.0 * ui),
+                  color: const Color(0xFF558EC2),
+                  offset: Offset(0, 3.5 * ui),
                   blurRadius: 0,
                 ),
               ],
@@ -299,21 +297,18 @@ class _MenuScreenState extends State<MenuScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  widget.muted
-                      ? Icons.volume_off_rounded
-                      : Icons.volume_up_rounded,
+                GameSpriteIcon(
+                  widget.muted ? GameIcons.soundOff : GameIcons.soundOn,
                   size: 18.0 * ui,
-                  color: const Color(0xFFFFF5DF),
                 ),
-                SizedBox(width: 5.0 * ui),
+                SizedBox(width: 4.0 * ui),
                 Text(
                   widget.muted ? _tr('sound_off') : _tr('sound_on'),
                   style: TextStyle(
-                    color: const Color(0xFFFFF5DF),
-                    fontSize: 11.5 * ui,
+                    color: const Color(0xFF285986),
+                    fontSize: 11.0 * ui,
                     fontWeight: FontWeight.w900,
-                    letterSpacing: 0.3 * ui,
+                    letterSpacing: 0.2 * ui,
                   ),
                 ),
               ],
@@ -324,199 +319,408 @@ class _MenuScreenState extends State<MenuScreen> {
     );
   }
 
-  Widget _buildHeroPlayButton(double ui, String currentModeSub) {
-    final playNowLabel = switch (widget.lang) {
-      'vi' => 'VÀO CHƠI NGAY',
-      'ja' => '今すぐプレイ',
-      _ => 'PLAY NOW',
-    };
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.onResumeOrPlay,
-      child: Container(
-        height: 68.0 * ui,
-        padding: EdgeInsets.symmetric(horizontal: 14.0 * ui),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFCA3A),
-          borderRadius: BorderRadius.circular(20.0 * ui),
-          border: Border.all(
-            color: const Color(0xFFFFF3C4),
-            width: 3.0 * ui,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF54314F),
-              offset: Offset(0, 5.0 * ui),
-              blurRadius: 0,
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44.0 * ui,
-              height: 44.0 * ui,
-              decoration: BoxDecoration(
-                color: const Color(0xFF4B2C4E),
-                borderRadius: BorderRadius.circular(14.0 * ui),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF2B1730),
-                    offset: Offset(0, 2.5 * ui),
-                    blurRadius: 0,
-                  ),
-                ],
-              ),
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.play_arrow_rounded,
-                size: 28.0 * ui,
-                color: const Color(0xFFFFD34B),
-              ),
-            ),
-            SizedBox(width: 12.0 * ui),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    playNowLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: const Color(0xFF3F2341),
-                      fontSize: 18.0 * ui,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.2 * ui,
-                      height: 1.1,
-                    ),
-                  ),
-                  SizedBox(height: 3.0 * ui),
-                  Text(
-                    currentModeSub.toUpperCase(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: const Color(0xFF613B34),
-                      fontSize: 11.0 * ui,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.3 * ui,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(width: 8.0 * ui),
-            Container(
-              width: 38.0 * ui,
-              height: 38.0 * ui,
-              decoration: BoxDecoration(
-                color: const Color(0xFFAA75C8),
-                borderRadius: BorderRadius.circular(12.0 * ui),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF77475F),
-                    offset: Offset(0, 2.5 * ui),
-                    blurRadius: 0,
-                  ),
-                ],
-              ),
-              alignment: Alignment.center,
-              child: Icon(
-                Icons.arrow_forward_rounded,
-                size: 20.0 * ui,
-                color: const Color(0xFFFFF5DD),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFramedMenuPanel(double ui) {
-    final modesHeading = switch (widget.lang) {
-      'vi' => 'CHỌN CHẾ ĐỘ CHƠI (6 MODES)',
-      'ja' => 'ゲームモードを選択 (6 MODES)',
-      _ => 'SELECT GAME MODE (6 MODES)',
+  Widget _buildSkyBlueCreamDialog({
+    required double ui,
+    required bool compactH,
+    required String currentHeaderSub,
+    required int stgId,
+  }) {
+    final modesTabTitle = switch (widget.lang) {
+      'vi' => '6 CHẾ ĐỘ CHƠI',
+      'ja' => '6 ゲームモード',
+      _ => '6 GAME MODES',
     };
     final stagesTabTitle = switch (widget.lang) {
       'vi' => '100 MÀN CHƠI (${widget.clearedStages.length}/100)',
       'ja' => '100 ステージ (${widget.clearedStages.length}/100)',
       _ => '100 STAGES (${widget.clearedStages.length}/100)',
     };
+    final playNowLabel = switch (widget.lang) {
+      'vi' => 'VÀO CHƠI NGAY',
+      'ja' => '今すぐプレイ',
+      _ => 'PLAY NOW',
+    };
 
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        12.0 * ui,
-        12.0 * ui,
-        12.0 * ui,
-        12.0 * ui,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xF53B2446),
-        borderRadius: BorderRadius.circular(24.0 * ui),
-        border: Border.all(
-          color: const Color(0xFFFFF0CA),
-          width: 2.6 * ui,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF1E0F26),
-            offset: Offset(0, 6.0 * ui),
-            blurRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Segmented 2-Tab Bar ("6 Chế Độ" | "100 Màn Chơi")
-          Container(
-            padding: EdgeInsets.all(4.0 * ui),
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topCenter,
+      children: [
+        // Outer Sky-Blue 3D Frame (matches Image 2's glossy light-blue bezel)
+        Positioned.fill(
+          child: Container(
+            padding: EdgeInsets.fromLTRB(
+              10.0 * ui,
+              12.0 * ui,
+              10.0 * ui,
+              12.0 * ui,
+            ),
             decoration: BoxDecoration(
-              color: const Color(0xFF2B1834),
-              borderRadius: BorderRadius.circular(16.0 * ui),
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFBDE3FF),
+                  Color(0xFF8DC6F5),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(32.0 * ui),
               border: Border.all(
-                color: const Color(0x44FFF0CA),
-                width: 1.5 * ui,
+                color: const Color(0xFFE3F3FF),
+                width: 2.8 * ui,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF5D99CC),
+                  offset: Offset(0, 7.0 * ui),
+                  blurRadius: 0,
+                ),
+                BoxShadow(
+                  color: const Color(0x440D233A),
+                  offset: Offset(0, 14.0 * ui),
+                  blurRadius: 20.0 * ui,
+                ),
+              ],
+            ),
+            // Inner Creamy-Ivory Card Surface (#FAF8F0)
+            child: Container(
+              padding: EdgeInsets.fromLTRB(
+                14.0 * ui,
+                compactH ? 26.0 * ui : 30.0 * ui,
+                14.0 * ui,
+                12.0 * ui,
+              ),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFFFCFBF5),
+                    Color(0xFFF4F0E1),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(23.0 * ui),
+                border: Border.all(
+                  color: const Color(0xFFE2DEC9),
+                  width: 1.6 * ui,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Subtitle (e.g. "MÀN 1 · MIDNIGHT CITY · TAP TAP TAP")
+                  Text(
+                    currentHeaderSub,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: const Color(0xFF7087A1),
+                      fontSize: 11.5 * ui,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.0 * ui,
+                    ),
+                  ),
+                  SizedBox(height: compactH ? 6.0 * ui : 8.0 * ui),
+
+                  // 2-Column Stat Summary with crisp #E5E1D0 Dividers (Image 2 Style)
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 7.0 * ui),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: Color(0xFFE5E1D0), width: 1.2),
+                        bottom: BorderSide(
+                          color: Color(0xFFE5E1D0),
+                          width: 1.2,
+                        ),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            children: [
+                              Text(
+                                widget.lang == 'vi'
+                                    ? 'TIẾN ĐỘ CHIẾN DỊCH'
+                                    : 'CAMPAIGN CLEARED',
+                                style: TextStyle(
+                                  color: const Color(0xFF768BA3),
+                                  fontSize: 9.5 * ui,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.6 * ui,
+                                ),
+                              ),
+                              SizedBox(height: 2.0 * ui),
+                              Text(
+                                '${widget.clearedStages.length} / 100',
+                                style: TextStyle(
+                                  color: const Color(0xFFF5A623),
+                                  fontSize: compactH ? 20.0 * ui : 22.0 * ui,
+                                  fontWeight: FontWeight.w900,
+                                  height: 1.05,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 1.2,
+                          height: 28.0 * ui,
+                          color: const Color(0xFFE5E1D0),
+                        ),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              Text(
+                                widget.lang == 'vi'
+                                    ? 'MÀN ĐANG CHỌN'
+                                    : 'ACTIVE STAGE',
+                                style: TextStyle(
+                                  color: const Color(0xFF768BA3),
+                                  fontSize: 9.5 * ui,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.6 * ui,
+                                ),
+                              ),
+                              SizedBox(height: 2.0 * ui),
+                              Text(
+                                '#$stgId',
+                                style: TextStyle(
+                                  color: const Color(0xFF34689A),
+                                  fontSize: compactH ? 20.0 * ui : 22.0 * ui,
+                                  fontWeight: FontWeight.w900,
+                                  height: 1.05,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: compactH ? 8.0 * ui : 10.0 * ui),
+
+                  // Segmented 2-Tab Bar in Pastel Sky-Blue & Cream
+                  Container(
+                    padding: EdgeInsets.all(3.5 * ui),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE3F0FA),
+                      borderRadius: BorderRadius.circular(14.0 * ui),
+                      border: Border.all(
+                        color: const Color(0xFFB7D9F4),
+                        width: 1.4 * ui,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _buildSegmentTabButton(
+                            ui: ui,
+                            selected: _activeTab == 0,
+                            iconAsset: GameIcons.carMerge,
+                            label: modesTabTitle,
+                            onTap: () => setState(() => _activeTab = 0),
+                          ),
+                        ),
+                        SizedBox(width: 5.0 * ui),
+                        Expanded(
+                          child: _buildSegmentTabButton(
+                            ui: ui,
+                            selected: _activeTab == 1,
+                            iconAsset: GameIcons.modeCampaign,
+                            label: stagesTabTitle,
+                            onTap: () => setState(() => _activeTab = 1),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: compactH ? 8.0 * ui : 10.0 * ui),
+
+                  // Active Tab Body: 6 Pastel Sub-Cards or 100 Stages Grid
+                  Expanded(
+                    child: _activeTab == 0
+                        ? _buildSixModesGrid(ui)
+                        : _buildStagesBrowser(ui),
+                  ),
+                  SizedBox(height: compactH ? 8.0 * ui : 10.0 * ui),
+
+                  // Giant Glossy 3D Gold Primary CTA Button (Exact Image 2 "NEXT LEVEL" style!)
+                  _buildGoldPrimaryCtaButton(ui, playNowLabel),
+                  SizedBox(height: 6.0 * ui),
+
+                  // Clean Footer Link (Image 2 "LEVEL SELECT / VIEW LEADERBOARD" style)
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () =>
+                        setState(() => _activeTab = _activeTab == 0 ? 1 : 0),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 2.0 * ui),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GameSpriteIcon(
+                            _activeTab == 0
+                                ? GameIcons.modeCampaign
+                                : GameIcons.trophy,
+                            size: 16.0 * ui,
+                          ),
+                          SizedBox(width: 6.0 * ui),
+                          Text(
+                            _activeTab == 0
+                                ? (widget.lang == 'vi'
+                                      ? 'CHỌN MÀN CHƠI (1–100)'
+                                      : 'SELECT STAGE (1–100)')
+                                : (widget.lang == 'vi'
+                                      ? 'XEM 6 CHẾ ĐỘ CHƠI'
+                                      : 'VIEW 6 GAME MODES'),
+                            style: TextStyle(
+                              color: const Color(0xFF2E6DA4),
+                              fontSize: 12.5 * ui,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5 * ui,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildSegmentTabButton(
-                    ui: ui,
-                    selected: _activeTab == 0,
-                    icon: Icons.sports_esports_rounded,
-                    label: modesHeading,
-                    onTap: () => setState(() => _activeTab = 0),
-                  ),
+          ),
+        ),
+
+        // Floating 3D Sky-Blue Top Ribbon Banner straddling the top bezel edge (Image 2 "VICTORY!" banner)
+        Positioned(
+          top: -16.0 * ui,
+          child: Container(
+            height: 44.0 * ui,
+            padding: EdgeInsets.symmetric(horizontal: 26.0 * ui),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF82D8FA),
+                  Color(0xFF3EAEEC),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(18.0 * ui),
+              border: Border.all(
+                color: const Color(0xFFEAF7FF),
+                width: 2.6 * ui,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF267CB5),
+                  offset: Offset(0, 4.5 * ui),
+                  blurRadius: 0,
                 ),
-                SizedBox(width: 6.0 * ui),
-                Expanded(
-                  child: _buildSegmentTabButton(
-                    ui: ui,
-                    selected: _activeTab == 1,
-                    icon: Icons.map_rounded,
-                    label: stagesTabTitle,
-                    onTap: () => setState(() => _activeTab = 1),
+              ],
+            ),
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GameSpriteIcon(GameIcons.modeBossRush, size: 22.0 * ui),
+                SizedBox(width: 8.0 * ui),
+                Text(
+                  'CIRCLE TRAFFIC 3D',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16.5 * ui,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.8 * ui,
+                    shadows: [
+                      Shadow(
+                        color: const Color(0xFF1E6A9E),
+                        offset: Offset(0, 1.8 * ui),
+                        blurRadius: 0,
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          SizedBox(height: 10.0 * ui),
+        ),
+      ],
+    );
+  }
 
-          // Active Tab Body
-          Expanded(
-            child: _activeTab == 0
-                ? _buildSixModesGrid(ui)
-                : _buildStagesBrowser(ui),
+  Widget _buildGoldPrimaryCtaButton(double ui, String label) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onResumeOrPlay,
+      child: Container(
+        height: 58.0 * ui,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFFFEC85),
+              Color(0xFFFFC52E),
+            ],
           ),
-        ],
+          borderRadius: BorderRadius.circular(17.0 * ui),
+          border: Border.all(
+            color: const Color(0xFFEDA818),
+            width: 2.2 * ui,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFC48412),
+              offset: Offset(0, 4.5 * ui),
+              blurRadius: 0,
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(15.0 * ui),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Top glossy white highlight bar (Image 2 NEXT LEVEL button shine)
+              Positioned(
+                top: 2.0 * ui,
+                left: 8.0 * ui,
+                right: 8.0 * ui,
+                height: 16.0 * ui,
+                child: IgnorePointer(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10.0 * ui),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white.withValues(alpha: 0.55),
+                          Colors.white.withValues(alpha: 0.0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: const Color(0xFF5E3D04),
+                      fontSize: 18.5 * ui,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.4 * ui,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -524,7 +728,7 @@ class _MenuScreenState extends State<MenuScreen> {
   Widget _buildSegmentTabButton({
     required double ui,
     required bool selected,
-    required IconData icon,
+    required String iconAsset,
     required String label,
     required VoidCallback onTap,
   }) {
@@ -532,22 +736,31 @@ class _MenuScreenState extends State<MenuScreen> {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        constraints: BoxConstraints(minHeight: 40.0 * ui),
+        constraints: BoxConstraints(minHeight: 38.0 * ui),
         padding: EdgeInsets.symmetric(
           horizontal: 8.0 * ui,
-          vertical: 6.0 * ui,
+          vertical: 5.0 * ui,
         ),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFF6B427E) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12.0 * ui),
+          gradient: selected
+              ? const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF6CC8F6),
+                    Color(0xFF3AA6E4),
+                  ],
+                )
+              : null,
+          borderRadius: BorderRadius.circular(11.0 * ui),
           border: selected
-              ? Border.all(color: const Color(0xFFFFD34B), width: 1.8 * ui)
+              ? Border.all(color: const Color(0xFFEAF7FF), width: 1.5 * ui)
               : null,
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: const Color(0xFF22112B),
-                    offset: Offset(0, 2.5 * ui),
+                    color: const Color(0xFF257BB3),
+                    offset: Offset(0, 2.0 * ui),
                     blurRadius: 0,
                   ),
                 ]
@@ -556,13 +769,7 @@ class _MenuScreenState extends State<MenuScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 15.0 * ui,
-              color: selected
-                  ? const Color(0xFFFFD34B)
-                  : const Color(0xFFD6B8E0),
-            ),
+            GameSpriteIcon(iconAsset, size: 16.0 * ui),
             SizedBox(width: 5.0 * ui),
             Flexible(
               child: Text(
@@ -571,9 +778,9 @@ class _MenuScreenState extends State<MenuScreen> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: selected
-                      ? const Color(0xFFFFF5DF)
-                      : const Color(0xFFD6B8E0),
-                  fontSize: 11.0 * ui,
+                      ? Colors.white
+                      : const Color(0xFF496B8C),
+                  fontSize: 10.8 * ui,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.2 * ui,
                 ),
@@ -592,12 +799,11 @@ class _MenuScreenState extends State<MenuScreen> {
         final spacing = 8.0 * ui;
         final cardW = ((gridConstraints.maxWidth - spacing * (cols - 1)) / cols)
             .floorToDouble();
-        // Dynamically size card height to fit 3 rows comfortably without scrolling on tall screens
         final rows = (CTGameMode.values.length / cols).ceil();
         final availableH = gridConstraints.maxHeight;
         final idealCardH = ((availableH - spacing * (rows - 1)) / rows).clamp(
-          96.0 * ui,
-          132.0 * ui,
+          92.0 * ui,
+          122.0 * ui,
         );
 
         return SingleChildScrollView(
@@ -607,7 +813,7 @@ class _MenuScreenState extends State<MenuScreen> {
             runSpacing: spacing,
             children: [
               for (final mode in CTGameMode.values)
-                _buildModeCard(mode, ui, cardW, idealCardH),
+                _buildModeSubCard(mode, ui, cardW, idealCardH),
             ],
           ),
         );
@@ -615,14 +821,20 @@ class _MenuScreenState extends State<MenuScreen> {
     );
   }
 
-  Widget _buildModeCard(
+  /// Mode Sub-Card modeled directly after the "Squad 24" / "Gear 0" cards in Image 2:
+  /// - Soft pastel sky-blue surface (`#E5F3FD`) with `#9CCCF4` border
+  /// - 3D cartoon icon on the top-left + bold `#1E4D7B` title & `#67839E` subtitle
+  /// - Glossy Golden Mini-Pill button at the bottom (`#FFE780` -> `#F6C63C`)
+  Widget _buildModeSubCard(
     CTGameMode mode,
     double ui,
     double cardWidth,
     double cardHeight,
   ) {
     final isCurrent = widget.state.mode == mode;
-    final (title, descKey, color, icon) = switch (mode) {
+    final iconAsset = GameIcons.forMode(mode);
+
+    final (title, descKey) = switch (mode) {
       CTGameMode.campaign => (
         switch (widget.lang) {
           'vi' => 'Chiến Dịch 100 Màn',
@@ -630,51 +842,20 @@ class _MenuScreenState extends State<MenuScreen> {
           _ => 'Campaign (100 Stages)',
         },
         'mode_campaign_desc',
-        const Color(0xFFFFC83E),
-        Icons.map_rounded,
       ),
-      CTGameMode.endless => (
-        _tr('mode_endless'),
-        'mode_endless_desc',
-        const Color(0xFF52FFA8),
-        Icons.all_inclusive_rounded,
-      ),
-      CTGameMode.timeAttack => (
-        _tr('mode_timeAttack'),
-        'mode_timeAttack_desc',
-        const Color(0xFF38BDF8),
-        Icons.timer_rounded,
-      ),
-      CTGameMode.rushHour => (
-        _tr('mode_rushHour'),
-        'mode_rushHour_desc',
-        const Color(0xFFFF9F43),
-        Icons.speed_rounded,
-      ),
-      CTGameMode.bossRush => (
-        _tr('mode_bossRush'),
-        'mode_bossRush_desc',
-        const Color(0xFFF472B6),
-        Icons.workspace_premium_rounded,
-      ),
+      CTGameMode.endless => (_tr('mode_endless'), 'mode_endless_desc'),
+      CTGameMode.timeAttack => (_tr('mode_timeAttack'), 'mode_timeAttack_desc'),
+      CTGameMode.rushHour => (_tr('mode_rushHour'), 'mode_rushHour_desc'),
+      CTGameMode.bossRush => (_tr('mode_bossRush'), 'mode_bossRush_desc'),
       CTGameMode.policeChase => (
         _tr('mode_policeChase'),
         'mode_policeChase_desc',
-        const Color(0xFF7DD3FC),
-        Icons.local_police_rounded,
       ),
     };
 
-    final activeBadgeText = switch (widget.lang) {
-      'vi' => 'ĐANG CHỌN',
-      'ja' => '選択中',
-      _ => 'ACTIVE',
-    };
-    final playBadgeText = switch (widget.lang) {
-      'vi' => 'CHƠI ▶',
-      'ja' => 'プレイ ▶',
-      _ => 'PLAY ▶',
-    };
+    final pillLabel = isCurrent
+        ? (widget.lang == 'vi' ? 'ĐANG CHỌN' : 'SELECTED')
+        : (widget.lang == 'vi' ? 'CHƠI NGAY' : 'PLAY');
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -682,144 +863,113 @@ class _MenuScreenState extends State<MenuScreen> {
       child: Container(
         width: cardWidth,
         constraints: BoxConstraints(minHeight: cardHeight),
-        padding: EdgeInsets.symmetric(
-          horizontal: 10.0 * ui,
-          vertical: 9.0 * ui,
-        ),
+        padding: EdgeInsets.fromLTRB(9.0 * ui, 8.0 * ui, 9.0 * ui, 7.0 * ui),
         decoration: BoxDecoration(
-          color: isCurrent ? const Color(0xFF5D386E) : const Color(0xFF4A2E57),
-          borderRadius: BorderRadius.circular(16.0 * ui),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isCurrent
+                ? const [Color(0xFFDDF0FE), Color(0xFFCBE7FC)]
+                : const [Color(0xFFEDF6FD), Color(0xFFE2F0FB)],
+          ),
+          borderRadius: BorderRadius.circular(15.0 * ui),
           border: Border.all(
-            color: isCurrent ? color : const Color(0x88FFF0CA),
-            width: isCurrent ? 2.6 * ui : 1.8 * ui,
+            color: isCurrent
+                ? const Color(0xFF53AEEB)
+                : const Color(0xFFA7D2F4),
+            width: isCurrent ? 2.2 * ui : 1.5 * ui,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF25132E),
-              offset: Offset(0, 3.5 * ui),
+              color: const Color(0xFFB8D6EE),
+              offset: Offset(0, 2.5 * ui),
               blurRadius: 0,
             ),
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Row 1: Colored 3D Icon Box + Status Pill (leaves Row 2 full width for Title!)
+            // Top Row: 3D Icon on the left + Title & Description on the right (Image 2 "Squad 24" layout)
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 30.0 * ui,
-                  height: 30.0 * ui,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(9.0 * ui),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0x44000000),
-                        offset: Offset(0, 2.0 * ui),
-                        blurRadius: 0,
-                      ),
-                    ],
-                  ),
-                  alignment: Alignment.center,
-                  child: Icon(
-                    icon,
-                    size: 17.0 * ui,
-                    color: const Color(0xFF24132C),
-                  ),
-                ),
-                SizedBox(width: 4.0 * ui),
-                if (mode == CTGameMode.campaign)
-                  Flexible(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => setState(() => _activeTab = 1),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 6.0 * ui,
-                          vertical: 3.5 * ui,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF3B2247),
-                          borderRadius: BorderRadius.circular(8.0 * ui),
-                          border: Border.all(
-                            color: color,
-                            width: 1.4 * ui,
-                          ),
-                        ),
-                        child: Text(
-                          widget.lang == 'vi' ? '🗺️ Chọn màn' : '🗺️ Stages',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: color,
-                            fontSize: 9.0 * ui,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  Flexible(
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 6.0 * ui,
-                        vertical: 3.0 * ui,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isCurrent
-                            ? color.withValues(alpha: 0.22)
-                            : const Color(0xFF392244),
-                        borderRadius: BorderRadius.circular(8.0 * ui),
-                        border: Border.all(
-                          color: isCurrent ? color : const Color(0x55FFF0CA),
-                          width: 1.2 * ui,
-                        ),
-                      ),
-                      child: Text(
-                        isCurrent ? activeBadgeText : playBadgeText,
+                GameSpriteIcon(iconAsset, size: 30.0 * ui),
+                SizedBox(width: 7.0 * ui),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: isCurrent ? color : const Color(0xFFE7CEE9),
-                          fontSize: 9.0 * ui,
+                          color: const Color(0xFF1D4D7A),
+                          fontSize: 11.8 * ui,
                           fontWeight: FontWeight.w900,
-                          letterSpacing: 0.3 * ui,
+                          letterSpacing: -0.2 * ui,
+                          height: 1.15,
                         ),
                       ),
-                    ),
+                      SizedBox(height: 2.0 * ui),
+                      Text(
+                        _tr(descKey),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: const Color(0xFF637F9A),
+                          fontSize: 9.6 * ui,
+                          fontWeight: FontWeight.w700,
+                          height: 1.18,
+                        ),
+                      ),
+                    ],
                   ),
+                ),
               ],
             ),
-            SizedBox(height: 6.0 * ui),
+            SizedBox(height: 5.0 * ui),
 
-            // Row 2: Full-width Mode Title (never truncated!)
-            Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: const Color(0xFFFFF5DF),
-                fontSize: 13.0 * ui,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.2 * ui,
-              ),
-            ),
-            SizedBox(height: 3.0 * ui),
-
-            // Row 3: Mode Description
-            Text(
-              _tr(descKey),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: const Color(0xFFE5C9EA),
-                fontSize: 10.5 * ui,
-                fontWeight: FontWeight.w600,
-                height: 1.22,
+            // Bottom Golden Mini-Pill Button (Exact Image 2 "140" gold pill inside Squad 24 card!)
+            Center(
+              child: Container(
+                height: 24.0 * ui,
+                width: cardWidth * 0.72,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: isCurrent
+                        ? const [Color(0xFFFFE880), Color(0xFFF6C436)]
+                        : const [Color(0xFFFFEE99), Color(0xFFF7D259)],
+                  ),
+                  borderRadius: BorderRadius.circular(8.0 * ui),
+                  border: Border.all(
+                    color: const Color(0xFFE0AC26),
+                    width: 1.2 * ui,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFC9961A),
+                      offset: Offset(0, 2.0 * ui),
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  pillLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: const Color(0xFF634206),
+                    fontSize: 10.0 * ui,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.3 * ui,
+                  ),
+                ),
               ),
             ),
           ],
@@ -848,8 +998,8 @@ class _MenuScreenState extends State<MenuScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: districtTheme.accent,
-                  fontSize: 12.0 * ui,
+                  color: const Color(0xFF235687),
+                  fontSize: 11.5 * ui,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.4 * ui,
                 ),
@@ -858,23 +1008,23 @@ class _MenuScreenState extends State<MenuScreen> {
             Text(
               '${_tr('stage_label')} $districtStart–${districtStart + 9}',
               style: TextStyle(
-                color: const Color(0xFFE7C3D2),
-                fontSize: 11.0 * ui,
+                color: const Color(0xFF6B849E),
+                fontSize: 10.5 * ui,
                 fontWeight: FontWeight.w800,
               ),
             ),
           ],
         ),
-        SizedBox(height: 7.0 * ui),
+        SizedBox(height: 6.0 * ui),
 
         // 10 Districts Horizontal Pill Bar
         SizedBox(
-          height: 40.0 * ui,
+          height: 36.0 * ui,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             itemCount: 10,
-            separatorBuilder: (_, _) => SizedBox(width: 7.0 * ui),
+            separatorBuilder: (_, _) => SizedBox(width: 6.0 * ui),
             itemBuilder: (context, idx) {
               final theme = kCTThemes[idx];
               final selected = idx == _selectedDistrict;
@@ -883,34 +1033,37 @@ class _MenuScreenState extends State<MenuScreen> {
                 onTap: () => setState(() => _selectedDistrict = idx),
                 child: Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: 12.0 * ui,
-                    vertical: 6.0 * ui,
+                    horizontal: 11.0 * ui,
+                    vertical: 5.0 * ui,
                   ),
                   decoration: BoxDecoration(
-                    color: selected ? theme.accent : const Color(0xFF4D315B),
-                    borderRadius: BorderRadius.circular(12.0 * ui),
+                    gradient: selected
+                        ? const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0xFF6AC6F6), Color(0xFF39A5E3)],
+                          )
+                        : const LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0xFFEDF6FD), Color(0xFFDCEBFA)],
+                          ),
+                    borderRadius: BorderRadius.circular(11.0 * ui),
                     border: Border.all(
                       color: selected
-                          ? const Color(0xFFFFF5DF)
-                          : theme.accent.withValues(alpha: 0.55),
-                      width: 1.8 * ui,
+                          ? const Color(0xFF2884BE)
+                          : const Color(0xFFA7D2F4),
+                      width: 1.5 * ui,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF24132C),
-                        offset: Offset(0, 2.5 * ui),
-                        blurRadius: 0,
-                      ),
-                    ],
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     '${idx * 10 + 1}–${(idx + 1) * 10} · ${theme.name}',
                     style: TextStyle(
                       color: selected
-                          ? const Color(0xFF231429)
-                          : const Color(0xFFFFF0D7),
-                      fontSize: 11.5 * ui,
+                          ? Colors.white
+                          : const Color(0xFF285886),
+                      fontSize: 11.0 * ui,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
@@ -919,23 +1072,23 @@ class _MenuScreenState extends State<MenuScreen> {
             },
           ),
         ),
-        SizedBox(height: 10.0 * ui),
+        SizedBox(height: 8.0 * ui),
 
-        // 10 Stages Grid (2 columns × 5 rows) cleanly framed inside the panel
+        // 10 Stages Grid (2 columns × 5 rows) in Pastel Sky-Blue cards
         Expanded(
           child: GridView.builder(
             padding: EdgeInsets.only(bottom: 4.0 * ui),
             physics: const BouncingScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              mainAxisSpacing: 8.0 * ui,
-              crossAxisSpacing: 8.0 * ui,
-              mainAxisExtent: 58.0 * ui,
+              mainAxisSpacing: 7.0 * ui,
+              crossAxisSpacing: 7.0 * ui,
+              mainAxisExtent: 56.0 * ui,
             ),
             itemCount: districtStages.length,
             itemBuilder: (context, idx) {
               final st = districtStages[idx];
-              return _buildStageTile(st, districtTheme, ui);
+              return _buildStageTile(st, ui);
             },
           ),
         ),
@@ -945,7 +1098,6 @@ class _MenuScreenState extends State<MenuScreen> {
 
   Widget _buildStageTile(
     CTStageDefinition st,
-    CTGameThemeData theme,
     double ui,
   ) {
     final isCurrent =
@@ -961,24 +1113,30 @@ class _MenuScreenState extends State<MenuScreen> {
       behavior: HitTestBehavior.opaque,
       onTap: () => widget.onSelectStage(st.id),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 9.0 * ui, vertical: 6.0 * ui),
+        padding: EdgeInsets.symmetric(horizontal: 8.0 * ui, vertical: 5.0 * ui),
         decoration: BoxDecoration(
-          color: isCurrent ? const Color(0xFF633C75) : const Color(0xFF4A2E57),
-          borderRadius: BorderRadius.circular(14.0 * ui),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isCurrent
+                ? const [Color(0xFFFFF3C4), Color(0xFFFFE48F)]
+                : const [Color(0xFFEDF6FD), Color(0xFFE0EFFB)],
+          ),
+          borderRadius: BorderRadius.circular(13.0 * ui),
           border: Border.all(
             color: isCurrent
-                ? const Color(0xFFFFD34B)
-                : st.isBoss
-                ? const Color(0xFFF472B6)
+                ? const Color(0xFFE6A817)
                 : isCleared
-                ? const Color(0xFF52FFA8)
-                : const Color(0x77FFF0CA),
-            width: isCurrent ? 2.5 * ui : 1.6 * ui,
+                ? const Color(0xFF34C77B)
+                : const Color(0xFFA5D1F3),
+            width: isCurrent ? 2.2 * ui : 1.5 * ui,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF25132E),
-              offset: Offset(0, 3.0 * ui),
+              color: isCurrent
+                  ? const Color(0xFFD49B1A)
+                  : const Color(0xFFB7D5ED),
+              offset: Offset(0, 2.5 * ui),
               blurRadius: 0,
             ),
           ],
@@ -986,41 +1144,57 @@ class _MenuScreenState extends State<MenuScreen> {
         child: Row(
           children: [
             Container(
-              width: 34.0 * ui,
-              height: 34.0 * ui,
+              width: 32.0 * ui,
+              height: 32.0 * ui,
               decoration: BoxDecoration(
-                color: isCleared
-                    ? const Color(0xFF52FFA8)
-                    : st.isBoss
-                    ? const Color(0xFFFFD34B)
-                    : theme.accent,
-                borderRadius: BorderRadius.circular(10.0 * ui),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: isCleared
+                      ? const [Color(0xFF5CE69B), Color(0xFF2BB66E)]
+                      : st.isBoss
+                      ? const [Color(0xFFFFE270), Color(0xFFF5B822)]
+                      : const [Color(0xFF72CAFA), Color(0xFF3DA6E3)],
+                ),
+                borderRadius: BorderRadius.circular(9.0 * ui),
               ),
               alignment: Alignment.center,
               child: Text(
                 '${st.id}',
                 style: TextStyle(
-                  color: const Color(0xFF23132B),
-                  fontSize: 13.5 * ui,
+                  color: st.isBoss && !isCleared
+                      ? const Color(0xFF5E3C04)
+                      : Colors.white,
+                  fontSize: 13.0 * ui,
                   fontWeight: FontWeight.w900,
                 ),
               ),
             ),
-            SizedBox(width: 8.0 * ui),
+            SizedBox(width: 7.0 * ui),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    st.isBoss ? '👑 ${st.name}' : st.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: const Color(0xFFFFF5DF),
-                      fontSize: 12.0 * ui,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  Row(
+                    children: [
+                      if (st.isBoss) ...[
+                        GameSpriteIcon(GameIcons.modeBossRush, size: 13.0 * ui),
+                        SizedBox(width: 3.0 * ui),
+                      ],
+                      Expanded(
+                        child: Text(
+                          st.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: const Color(0xFF1D4D7A),
+                            fontSize: 11.5 * ui,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 2.0 * ui),
                   Row(
@@ -1031,38 +1205,34 @@ class _MenuScreenState extends State<MenuScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: const Color(0xFFDDC2E8),
-                            fontSize: 10.5 * ui,
+                            color: const Color(0xFF637F9A),
+                            fontSize: 9.8 * ui,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                       if (hasExit) ...[
-                        SizedBox(width: 4.0 * ui),
-                        Text('🟢', style: TextStyle(fontSize: 9.5 * ui)),
+                        SizedBox(width: 2.5 * ui),
+                        GameSpriteIcon(GameIcons.carGreenExit, size: 11.0 * ui),
                       ],
                       if (hasPolice) ...[
-                        SizedBox(width: 3.0 * ui),
-                        Text('🚓', style: TextStyle(fontSize: 9.5 * ui)),
-                      ],
-                      if (isFig8) ...[
-                        SizedBox(width: 3.0 * ui),
-                        Text(
-                          '∞',
-                          style: TextStyle(
-                            color: const Color(0xFFFFD34B),
-                            fontSize: 11.0 * ui,
-                            fontWeight: FontWeight.w900,
-                          ),
+                        SizedBox(width: 2.0 * ui),
+                        GameSpriteIcon(
+                          GameIcons.modePoliceChase,
+                          size: 11.0 * ui,
                         ),
                       ],
+                      if (isFig8) ...[
+                        SizedBox(width: 2.0 * ui),
+                        GameSpriteIcon(GameIcons.modeEndless, size: 11.0 * ui),
+                      ],
                       if (!st.clockwise) ...[
-                        SizedBox(width: 3.0 * ui),
+                        SizedBox(width: 2.0 * ui),
                         Text(
                           '↺',
                           style: TextStyle(
-                            color: const Color(0xFF7DD3FC),
-                            fontSize: 11.0 * ui,
+                            color: const Color(0xFF2B7AB8),
+                            fontSize: 10.0 * ui,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
@@ -1075,7 +1245,7 @@ class _MenuScreenState extends State<MenuScreen> {
             if (isCleared)
               Icon(
                 Icons.check_circle_rounded,
-                color: const Color(0xFF52FFA8),
+                color: const Color(0xFF28B46B),
                 size: 16.0 * ui,
               ),
           ],

@@ -8,6 +8,7 @@ import 'package:circle_traffic_3d/features/traffic_game/domain/repositories/audi
 import 'package:circle_traffic_3d/features/traffic_game/domain/services/traffic_math_service.dart';
 import 'package:circle_traffic_3d/features/traffic_game/presentation/providers/game_providers.dart';
 import 'package:circle_traffic_3d/features/traffic_game/presentation/screens/menu_screen.dart';
+import 'package:circle_traffic_3d/features/traffic_game/presentation/widgets/game_icons.dart';
 import 'package:circle_traffic_3d/features/traffic_game/presentation/widgets/game_overlay.dart';
 import 'package:circle_traffic_3d/game/data/circle_traffic_stages.dart';
 import 'package:circle_traffic_3d/game/data/circle_traffic_themes.dart';
@@ -239,9 +240,9 @@ void main() {
       await tester.pumpWidget(buildTestApp(showSelector: false));
       expect(tester.takeException(), isNull);
 
-      // Verify in-game HUD has removed the title logo image (no Image widgets in gameplay HUD)
-      expect(find.byType(Image), findsNothing);
+      // Verify in-game HUD has removed the title logo image and uses sliced GameSpriteIcons
       expect(find.byType(MenuScreen), findsNothing);
+      expect(find.byType(GameSpriteIcon), findsWidgets);
 
       // Verify language button ("VI") sits below the 36dp status bar and has >= 42dp touch height
       final langFinder = find.text('VI');
@@ -265,7 +266,7 @@ void main() {
       await tester.pumpWidget(buildTestApp(showSelector: true));
       expect(tester.takeException(), isNull);
       expect(find.byType(MenuScreen), findsOneWidget);
-      expect(find.text('CHỌN CHẾ ĐỘ CHƠI (6 MODES)'), findsOneWidget);
+      expect(find.text('6 CHẾ ĐỘ CHƠI'), findsOneWidget);
       expect(find.text('Chiến Dịch 100 Màn'), findsOneWidget);
 
       // Switch to 100 Stages tab and verify stages render without overflow

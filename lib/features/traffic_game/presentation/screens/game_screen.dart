@@ -145,10 +145,7 @@ class _Scene3DViewportLayer extends ConsumerWidget {
     final sceneReady = ref.watch(
       gameSessionProvider.select((s) => s.sceneReady),
     );
-    final inMenu = ref.watch(
-      gameSessionProvider.select((s) => s.showModeStageSelector),
-    );
-    if (!sceneReady || inMenu) {
+    if (!sceneReady) {
       return const SizedBox.shrink();
     }
     final world3d = ref.watch(scene3DWorldProvider);
